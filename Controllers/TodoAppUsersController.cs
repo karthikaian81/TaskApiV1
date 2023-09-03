@@ -123,11 +123,7 @@ namespace TaskApiV1.Controllers
             return Ok(test);
         }
 
-        public ActionResult GetUsersRoles() 
-        { 
-        
-        
-        }
+  
 
     }
 }
