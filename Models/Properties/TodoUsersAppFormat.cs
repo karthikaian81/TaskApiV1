@@ -6,8 +6,13 @@ namespace TaskApiV1.Models.Properties
 {
     public class TodoUsersAppFormat
     {
+        [Required]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ProfileId { get; set; }
+
+        [Required]
+        [ForeignKey("UserId")]
         public int UserId { get; set; }
 
         [Required]

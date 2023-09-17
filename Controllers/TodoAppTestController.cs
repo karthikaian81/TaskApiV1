@@ -102,7 +102,7 @@ namespace TaskApiV1.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<TestTodoAppFormat>> GetTodoTestByUserId(int UserId)
         {
-            if (UserId > 1000 && _dbContext.TodoUsersAppFormats.Any(x => x.UserId == UserId))
+            if (UserId > 1000 && _dbContext.TodoUsersProfileAppFormats.Any(x => x.UserId == UserId))
             {
                 var todo = _dbContext.TestTodoAppFormats.Where(x => x.UserId == UserId).ToList();
                 if (todo != null && todo.Count > 0)

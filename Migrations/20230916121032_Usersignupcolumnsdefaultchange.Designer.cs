@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskApiV1.DBData;
 
@@ -11,9 +12,11 @@ using TaskApiV1.DBData;
 namespace TaskApiV1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230916121032_Usersignupcolumnsdefaultchange")]
+    partial class Usersignupcolumnsdefaultchange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,19 +103,20 @@ namespace TaskApiV1.Migrations
                         .HasColumnType("varbinary(max)");
 
                     b.Property<string>("ResetToken")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ResetTokenExpireson")
+                    b.Property<DateTime>("ResetTokenExpireson")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("Updatedon")
+                    b.Property<DateTime>("Updatedon")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("VeificationToken")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Verifiedon")
+                    b.Property<DateTime>("Verifiedon")
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserId");
@@ -174,7 +178,20 @@ namespace TaskApiV1.Migrations
 
                     b.HasKey("ProfileId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("TodoUsersProfileAppFormats");
+                });
+
+            modelBuilder.Entity("TaskApiV1.Models.Properties.TodoUsersAppFormat", b =>
+                {
+                    b.HasOne("TaskApiV1.Models.Properties.TodoUserSignupFormat", "UserSignUp")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserSignUp");
                 });
 #pragma warning restore 612, 618
         }

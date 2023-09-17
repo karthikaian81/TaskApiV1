@@ -4,11 +4,11 @@ namespace TaskApiV1.CustomValidations
 {
     public class PasswordCustomValidation :ValidationAttribute
     {
-        public bool EnableMinlengthRestriction, EnableCapLetterManRestrction, EnableSmallLetterManRestriction, EnableNumberManRestriction, EnableSpecialCharManRestriction;
+        public bool EnableMinlengthRestriction, EnableCapLetterManRestrction, EnableSmallLetterManRestriction, EnableNumberManRestriction, EnableSpecialCharManRestriction, MaxlengthRest = false;
         public string DateCustomErrorMessage=string.Empty,Password;
-        public int PwdMinlength;
+        public int PwdMinlength, PwdMaxlength = 0;
 
-        char[] SpecialChars = { '@', '#', '$', '%', '^', '&', '*', ',', '>', '?', '.' }; // SpecialChars.Any(y=>y.Equals(x))
+        char[] SpecialChars = { '@', '#', '$', '%', '^', '&', '*', ',','<', '>', '?', '.','_','-',':',';','|','~' }; // SpecialChars.Any(y=>y.Equals(x))
 
         public PasswordCustomValidation(int Minlen,bool MinlenRest,bool CapLetterRest=false,bool SmallLetterRest = false,bool NumberManRest = false,bool SpecialCharRest = false)
         {
@@ -45,6 +45,11 @@ namespace TaskApiV1.CustomValidations
                 {
                     return new ValidationResult(ErrorMessage = $"Password should Contain a Minimum of one specialcharacters {Password} ");
                 }
+                if(MaxlengthRest && !(PwdMaxlength >0 && PwdMaxlength >= PwdMinlength && Password.Length < PwdMaxlength))
+                {
+                    return new ValidationResult(ErrorMessage = $"Password should Have maximum length of {PwdMaxlength} ");
+                }
+                return ValidationResult.Success;
             }
             return new ValidationResult(ErrorMessage = "This validation only works for string type property");
         }

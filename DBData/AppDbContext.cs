@@ -20,7 +20,9 @@ namespace TaskApiV1.DBData
 
         public DbSet<TestTodoAppFormat> TestTodoAppFormats { get; set;}
 
-        public DbSet<TodoUsersAppFormat> TodoUsersAppFormats { get; set;}
+        public DbSet<TodoUsersAppFormat> TodoUsersProfileAppFormats { get; set;}
+
+        public DbSet<TodoUserSignupFormat> TodoUserSignupsFormat { get; set;}
 
     }
 }
