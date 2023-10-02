@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿        using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using TaskApiV1.Models.Properties;
 namespace TaskApiV1.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class TodoAppTestController : ControllerBase
     {
@@ -80,6 +82,8 @@ namespace TaskApiV1.Controllers
             return NoContent();
         }
 
+
+
         [Route("GetSingleTask/{TaskId:int}")]
         [HttpGet]
         [Produces("application/json")]
@@ -93,6 +97,26 @@ namespace TaskApiV1.Controllers
             var todomapget = _Mapper.Map<TodoTestGet>(todo);
             return Ok(todomapget);
 
+        }
+
+        [Route("GetUserProfileTaskslist/{UserId:int}/{ProfileId:int}")]
+        [HttpGet]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<TestTodoAppFormat>> GetTodoTestByUserIdProfileId(int UserId, int ProfileId)
+        {
+            if (UserId > 1000 && _dbContext.TodoUsersProfileAppFormats.Any(x => x.UserId == UserId && x.ProfileId == ProfileId))
+            {
+                var todo = _dbContext.TestTodoAppFormats.Where(x => x.UserId == UserId && x.ProfileId == ProfileId).ToList();
+                if (todo != null && todo.Count > 0)
+                {
+                    var todomapget = _Mapper.Map<List<TodoTestGet>>(todo);
+                    return Ok(todomapget);
+                }
+                return NotFound("User does not have a Tasks");
+            }
+            return NotFound("User not Registered");
         }
 
         [Route("GetUserTaskslist/{UserId:int}")]
@@ -114,6 +138,8 @@ namespace TaskApiV1.Controllers
             }
             return NotFound("User not Registered");
         }
+
+        
 
         [Route("DeleteTask/{TaskId:int}")]
         [HttpDelete]

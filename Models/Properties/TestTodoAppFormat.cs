@@ -29,6 +29,9 @@ namespace TaskApiV1.Models.Properties
         public Int64 UserId { get; set; }
 
         [Required]
+        public int ProfileId { get; set; }
+
+        [Required]
         public Int64 PhoneNumber { get; set; }
 
         [EstimatedDateValidation]

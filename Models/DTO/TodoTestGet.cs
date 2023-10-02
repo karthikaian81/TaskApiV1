@@ -13,6 +13,8 @@ namespace TaskApiV1.Models.DTO
 
         public Int64 UserId { get; set; }
 
+        public Int64 ProfileId { get; set; }
+
         public Int64 PhoneNumber { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime EstimatedCompletedOn { get; set; }

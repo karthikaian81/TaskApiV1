@@ -1,12 +1,20 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using TaskApiV1.DBData;
 using TaskApiV1.Models.DTO;
 using TaskApiV1.Models.Properties;
+using System.Text;
 
 namespace TaskApiV1.Controllers
 {
+    [Authorize]
     [Route("api/Users")]
     [ApiController]
     public class TodoAppUsersController : ControllerBase
@@ -14,10 +22,20 @@ namespace TaskApiV1.Controllers
         private readonly AppDbContext _dbContext;
         private readonly IMapper _Mapper;
 
-        public TodoAppUsersController(AppDbContext dbContext, IMapper mapper)
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IConfiguration _configuration;
+
+        public TodoAppUsersController(AppDbContext dbContext, IMapper mapper,
+             UserManager<IdentityUser> userManager,
+              RoleManager<IdentityRole> roleManager,
+            IConfiguration configuration)
         {
             _dbContext = dbContext;
             _Mapper = mapper;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _configuration = configuration;
         }
 
         [Route("CreateProfile")]
@@ -157,6 +175,31 @@ namespace TaskApiV1.Controllers
                 }).OrderBy(x=>x.id)
                 .ToList();
             return Ok(test);
-        } 
+        }
+
+        [AllowAnonymous]
+        [HttpPost("[action]")]
+        public ActionResult Login(TodoUserLogin userLogin)
+        {
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(
+                    new JwtSecurityToken(
+                        //issuer: _configuration["JWT:ValidIssuer"],
+                        //audience: _configuration["JWT:ValidAudience"],
+                        claims: new List<Claim>() { new Claim("Name", "Karthik"), },
+                        expires: DateTime.Now.AddMinutes(4),
+                        signingCredentials: new SigningCredentials(
+                            new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(_configuration.GetSection("JWT:Secret").Value ?? "")
+                                )
+                            , SecurityAlgorithms.HmacSha512Signature),
+                        notBefore: DateTime.Now.AddMinutes(2)
+                        
+                ))
+            });
+        }
+
+        
     }
 }
