@@ -1,7 +1,13 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using TaskApiV1.DBData;
 using TaskApiV1.Models.BuisnessModels;
 using TaskApiV1.Models.DTO;
@@ -15,18 +21,22 @@ namespace TaskApiV1.Controllers
     {
         private AppDbContext _dbContext;
         private IMapper _mapper;
+        private IConfiguration _config;
+        private UsersRegisterGlobalHelper _userglbhelper;
 
-        public TodoAppUserSignUpController(AppDbContext dbContext,IMapper mapper)
+        public TodoAppUserSignUpController(AppDbContext dbContext,IMapper mapper,IConfiguration configuration,UsersRegisterGlobalHelper usersRegisterGlobalHelper)
         {
             _dbContext = dbContext;  
             _mapper = mapper;
+            _config = configuration;
+            _userglbhelper = usersRegisterGlobalHelper;
         }
 
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Consumes("application/json")]
-        [HttpPost("Signin")]
+        [HttpPost("Signup")]
         public ActionResult Signup(TodoUserSignupCreate signupCreate)
         {
             try
@@ -107,7 +117,40 @@ namespace TaskApiV1.Controllers
             return Ok("User Verfied and Activated");
         }
 
+        [HttpPost("[controller]/Login")]
+        public async Task<IActionResult> Login(TodoUserLogin userLogin)
+        {
+            if (ModelState.IsValid)
+            {
+              TodoUserSignupFormat signupFormat =  await  _dbContext.TodoUserSignupsFormat
+                                                    .Where(x=>x.Email == userLogin.EmailId && 
+                                                    x.Active == 1 ).FirstOrDefaultAsync();
+
+               if(signupFormat is null)
+                    return Unauthorized();
+              
+                var profileids = await _dbContext.TestTodoAppFormats
+                                .Where(x=>x.UserId == signupFormat.UserId)
+                                .Select(x => x.ProfileId).ToListAsync();
+
+                _userglbhelper.PasswordHash = signupFormat.PasswordHash;
+                _userglbhelper.PasswordSalt = signupFormat.PasswordSalt;
+                if (_userglbhelper.VerifyPasswordHash(userLogin.Password))
+                 return Ok(new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(
+                        issuer:_config.GetSection("JWT:ValidIssuer").Value,
+                        audience: _config.GetSection("JWT:ValidAudience").Value,
+                        claims: new List<Claim>() { new Claim(ClaimTypes.Email, userLogin.EmailId),
+                            new Claim("ProfileIds",string.Join(',',profileids)) },
+                        expires: DateTime.Now.AddMinutes(3),
+                        signingCredentials: new SigningCredentials(
+                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("JWT:Secret").Value)),SecurityAlgorithms.HmacSha512Signature)
+                        )));
+            }
+            return BadRequest("Invalid Creadentials");
+        } 
+
         [HttpGet]
+        [Authorize]
         public ActionResult<IEnumerable<TodoUserSignupFormat>> GetUsersList()
         {
             return _dbContext.TodoUserSignupsFormat.Select(x=> new TodoUserSignupFormat

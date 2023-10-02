@@ -23,6 +23,10 @@ namespace TaskApiV1.Models.DTO
         [Range(1001,Int64.MaxValue)]
         public Int64 UserId { get; set; }
 
+        [Required]
+        [Range(1, Int64.MaxValue)]
+        public Int64 ProfileId { get; set; }
+
         [EstimatedDateValidation]
         public DateTime EstimatedCompletedOn { get; set; }
 
